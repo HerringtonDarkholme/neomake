@@ -281,6 +281,7 @@ function! s:MakeJob(make_id, options) abort
         else
             call s:ProcessEntries(jobinfo, entries)
         endif
+        let jobinfo.finished = 1
         call s:CleanJobinfo(jobinfo)
         return jobinfo
     endif
@@ -1337,6 +1338,11 @@ function! s:do_clean_make_info(make_id) abort
                 call delete(dir, 'd')
             endfor
         endif
+    endif
+
+    let buf_prev_make = getbufvar(make_info.options.bufnr, 'neomake_automake_make_id')
+    if !empty(buf_prev_make) && buf_prev_make == a:make_id
+        call setbufvar(make_info.options.bufnr, 'neomake_automake_make_id', '')
     endif
 
     unlet s:make_info[a:make_id]

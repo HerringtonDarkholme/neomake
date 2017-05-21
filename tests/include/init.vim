@@ -296,13 +296,17 @@ function! NeomakeTestsCommandMaker(name, cmd)
 endfunction
 
 function! NeomakeTestsFakeJobinfo() abort
+  let options = {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': ''}
+  let make_id = -42
+  let jobinfo = extend(copy(options), {'make_id': make_id})
   let make_info = neomake#GetStatus().make_info
-  let make_info[-42] = {
+  let make_info[make_id] = {
+        \ 'options': options,
         \ 'verbosity': get(g:, 'neomake_verbose', 1),
         \ 'active_jobs': [],
         \ 'finished_jobs': [],
         \ 'queued_jobs': []}
-  return {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': '', 'make_id': -42}
+  return jobinfo
 endfunction
 
 function! s:monkeypatch_highlights() abort

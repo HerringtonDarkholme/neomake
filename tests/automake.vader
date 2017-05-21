@@ -482,15 +482,18 @@ Execute (Automake stops previous jobs):
     let g:neomake_test_enabledmakers = [g:sleep_maker]
     set filetype=neomake_tests
     doautocmd TextChanged
-    let make_id = neomake#GetStatus().last_make_id
     NeomakeTestsWaitForMessage '\vautomake: callback for timer \d+'
+    let first_make_id = neomake#GetStatus().last_make_id
+    AssertEqual first_make_id, b:neomake_automake_make_id
     normal! ifoo
     doautocmd TextChanged
-    NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage '\vautomake: stopping previous make_ids: \[(\d+)\]'
+    NeomakeTestsWaitForMessage '\vautomake: callback for timer \d+'
+    let second_make_id = neomake#GetStatus().last_make_id
+    AssertEqual b:neomake_automake_make_id, second_make_id
+    AssertNeomakeMessage '\vautomake: stopping previous make run: (\d+)'
     let make_id = g:neomake_test_matchlist[1]
-    AssertEqual make_id + 1, neomake#GetStatus().last_make_id
-
+    AssertEqual make_id + 1, second_make_id
+    NeomakeTestsWaitForFinishedJobs
     bwipe!
   endif
 
