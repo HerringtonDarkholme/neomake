@@ -136,6 +136,13 @@ function! s:automake_delayed_cb(timer) abort
         return
     endif
 
+    let bufnr = bufnr('%')
+    if timer_info.bufnr != bufnr
+        call s:debug_log(printf('buffer changed: %d => %d',
+              \ timer_info.bufnr, bufnr))
+        return
+    endif
+
     " Check disabled ft here for BufWinEnter, since &ft might not be defined
     " before (startify).
     if timer_info.event ==# 'BufWinEnter' && s:disabled_for_ft(timer_info.bufnr)

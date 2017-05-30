@@ -568,3 +568,26 @@ Execute (Toggling disables automaking):
   AssertNeomakeMessage 'automake: disabled (buffer).'
 
   bwipe
+
+Execute (Handles timeout in another buffer):
+  if NeomakeAsyncTestsSetup()
+    new
+    let bufnr1 = bufnr('%')
+    set filetype=neomake_tests
+    let g:neomake_test_enabledmakers = [g:sleep_maker]
+    call neomake#configure#automake({
+    \ 'TextChanged': {'delay': 10}})
+    doautocmd TextChanged
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    let timer = g:neomake_test_matchlist[1]
+    let timer = g:neomake_test_matchlist[1]
+    new
+    let bufnr2 = bufnr('%')
+    sleep 20m
+    AssertNeomakeMessage printf('automake: callback for timer %d.', timer)
+    AssertNeomakeMessage printf('automake: buffer changed: %d => %d.', bufnr1, bufnr2)
+    bwipe
+    sleep 20m
+    AssertEqual len(g:neomake_test_finished), 0
+    bwipe!
+  endif
