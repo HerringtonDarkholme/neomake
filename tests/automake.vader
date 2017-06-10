@@ -566,7 +566,6 @@ Execute (Toggling disables automaking):
   AssertNeomakeMessage 'automake: registered events: InsertLeave.'
   AssertNeomakeMessage 'automake: automake for event InsertLeave.'
   AssertNeomakeMessage 'automake: disabled (buffer).'
-
   bwipe
 
 Execute (Handles timeout in another buffer):
