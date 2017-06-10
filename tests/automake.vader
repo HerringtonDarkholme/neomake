@@ -17,7 +17,7 @@ Execute (Setup):
     endfor
     AssertEqual join(sort(expected), "\n"), join(sort(sort_output), "\n")
   endfunction
-  call add(g:neomake_test_funcs_before, 'function NeomakeTestsAssertAutomakeAutocommands(events) abort')
+  call add(g:neomake_test_funcs_before, 'NeomakeTestsAssertAutomakeAutocommands')
 
 Execute (short setup: 'n'):
   Save g:neomake
