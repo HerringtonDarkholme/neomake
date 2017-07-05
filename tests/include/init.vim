@@ -67,7 +67,7 @@ endfunction
 command! -nargs=+ NeomakeTestsWaitForMessage call s:wait_for_message(<args>)
 
 function! s:wait_for_finished_job()
-  if !neomake#has_async_support()
+  if !neomake#has_async_support() && !has('timers')
     return
   endif
   if !exists('#neomake_tests')
