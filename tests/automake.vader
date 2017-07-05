@@ -584,7 +584,7 @@ Execute (Handles timeout in another buffer):
     new
     let bufnr2 = bufnr('%')
     sleep 20m
-    AssertNeomakeMessage printf('automake: callback for timer %d.', timer)
+    AssertNeomakeMessage printf('automake: callback for timer %d (via TextChanged).', timer)
     AssertNeomakeMessage printf('automake: buffer changed: %d => %d.', bufnr1, bufnr2)
     bwipe
     sleep 20m

@@ -120,8 +120,6 @@ function! s:neomake_do_automake(context) abort
 endfunction
 
 function! s:automake_delayed_cb(timer) abort
-    call s:debug_log(printf('callback for timer %d', string(a:timer)))
-
     let timer_info = s:timer_info[a:timer]
     if !len(timer_info)
         call s:debug_log(printf('no timer_info found for timer: %d', a:timer))
@@ -135,6 +133,9 @@ function! s:automake_delayed_cb(timer) abort
                     \ {'bufnr': timer_info.bufnr})
         return
     endif
+
+    call s:debug_log(printf('callback for timer %d (via %s)', string(a:timer), timer_info.event),
+          \ {'bufnr': timer_info.bufnr})
 
     let bufnr = bufnr('%')
     if timer_info.bufnr != bufnr
