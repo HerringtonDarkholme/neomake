@@ -1,3 +1,6 @@
+" TODO: slow down timer automatically for several TextChanged events, e.g.
+"       when using undo/u?!
+"
 " Default settings, setup in global config dict.
 let s:default_settings = {
       \ 'ignore_filetypes': ['startify'],
@@ -333,7 +336,9 @@ endfunction
 " Called from autocommands.
 function! s:neomake_automake(event, bufnr) abort
     let bufnr = +a:bufnr
+
     " TODO: blacklist/whitelist.
+    " TODO: after/only for configured buffers?!
     let buftype = getbufvar(bufnr, '&buftype')
     if !empty(buftype)
         " TODO: test
