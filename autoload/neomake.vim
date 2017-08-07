@@ -1289,6 +1289,7 @@ function! s:clean_make_info(make_id, ...) abort
             endif
         endif
         call neomake#EchoCurrentError(1)
+        call neomake#statusline#buffer_finished(a:jobinfo.bufnr)
         call s:clean_for_new_make(make_info)
         call s:handle_locqf_list_for_finished_jobs(make_info)
     else

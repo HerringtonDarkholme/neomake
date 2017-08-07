@@ -19,6 +19,15 @@ function! s:incCount(counts, item, buf) abort
     return 0
 endfunction
 
+function! neomake#statusline#buffer_finished(bufnr) abort
+    if !has_key(s:loclist_counts, a:bufnr)
+        let s:loclist_counts[a:bufnr] = {}
+        if has_key(s:cache, a:bufnr)
+            unlet s:cache[a:bufnr]
+        endif
+    endif
+endfunction
+
 function! neomake#statusline#ResetCountsForBuf(...) abort
     let bufnr = a:0 ? +a:1 : bufnr('%')
     if has_key(s:loclist_counts, bufnr)
@@ -27,6 +36,9 @@ function! neomake#statusline#ResetCountsForBuf(...) abort
       if r
           call neomake#utils#hook('NeomakeCountsChanged', {
                 \ 'reset': 1, 'file_mode': 1, 'bufnr': bufnr})
+      endif
+      if has_key(s:cache, bufnr)
+          unlet s:cache[bufnr]
       endif
       return r
     endif
@@ -101,9 +113,9 @@ function! neomake#statusline#QflistStatus(...) abort
     return s:showErrWarning(neomake#statusline#QflistCounts(), a:0 ? a:1 : '')
 endfunction
 
-
+let s:no_loclist_counts = {}
 function! neomake#statusline#get_counts(bufnr) abort
-    return [get(s:loclist_counts, a:bufnr, {}), s:qflist_counts]
+    return [get(s:loclist_counts, a:bufnr, s:no_loclist_counts), s:qflist_counts]
 endfunction
 
 function! neomake#statusline#get_filtered_counts(bufnr, ...) abort
@@ -178,8 +190,13 @@ function! neomake#statusline#get_status(bufnr, options) abort
     else
         let [loclist_counts, qflist_counts] = neomake#statusline#get_counts(a:bufnr)
         if empty(loclist_counts)
-            let format_ok = get(a:options, 'format_ok', '%#NeomakeStatusGood#✓')
-            let r .= s:formatter.format(format_ok, {'bufnr': a:bufnr})
+            if loclist_counts is s:no_loclist_counts
+                let format_unknown = get(a:options, 'format_unknown', '?')
+                let r .= s:formatter.format(format_unknown, {'bufnr': a:bufnr})
+            else
+                let format_ok = get(a:options, 'format_ok', '%#NeomakeStatusGood#✓')
+                let r .= s:formatter.format(format_ok, {'bufnr': a:bufnr})
+            endif
         else
             let format_loclist = get(a:options, 'format_loclist_issues', '%s')
             if !empty(format_loclist)
@@ -275,13 +292,13 @@ function! neomake#statusline#get(bufnr, options) abort
         else
             let r .= source[0].'+'
         endif
+    else
+        let status = neomake#statusline#get_status(bufnr, a:options)
+        if has_key(a:options, 'format_status')
+            let status = printf(a:options.format_status, status)
+        endif
+        let r .= status
     endif
-
-    let status = neomake#statusline#get_status(bufnr, a:options)
-    if has_key(a:options, 'format_status')
-        let status = printf(a:options.format_status, status)
-    endif
-    let r .= status
 
     let s:cache[a:bufnr][cache_key] = r
     return r
