@@ -63,6 +63,11 @@ Execute (neomake#statusline#get_status):
   let bufnr = bufnr('')
   AssertEqual neomake#statusline#get_status(bufnr, {}), '?'
 
+  AssertEqual neomake#statusline#get_status(bufnr, {'format_unknown': '{{running_job_names}}'}), ''
+  " {{running_jobs}} is only available with 'format_running' (internally).
+  AssertEqual neomake#statusline#get_status(bufnr, {'format_unknown': '{{running_jobs}}'}), '{{running_jobs}}'
+  AssertNeomakeMessage 'Unknown statusline format: {{running_jobs}}.', 0
+
   call neomake#Make({'enabled_makers': [g:sleep_maker]})
   if neomake#has_async_support()
     AssertEqual neomake#statusline#get_status(bufnr, {}), '… (sleep-maker)'
@@ -71,6 +76,8 @@ Execute (neomake#statusline#get_status):
     " format_running=0 disables display of running state.
     AssertEqual neomake#statusline#get_status(bufnr, {'format_running': 0}), '?'
     AssertEqual neomake#statusline#get_status(bufnr, {'format_running': '{{running_job_names}}'}), 'sleep-maker'
+
+    Assert neomake#statusline#get_status(bufnr, {'format_running': '{{running_jobs}}'}) =~# '\m^{''', '{{running_jobs}} is replaced in format_running'
   else
     AssertEqual neomake#statusline#get_status(bufnr, {}), '✓'
     AssertEqual neomake#statusline#get_status(bufnr, {'format_running': '...'}), '✓'

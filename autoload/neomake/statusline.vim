@@ -149,7 +149,8 @@ let s:formatter = {
             \ 'args': {},
             \ }
 function! s:formatter.running_job_names() abort
-    return join(map(s:running_jobs(self.args.bufnr), 'v:val.name'), ', ')
+    let jobs = get(self.args, 'running_jobs', s:running_jobs(self.args.bufnr))
+    return join(map(jobs, 'v:val.name'), ', ')
 endfunction
 
 function! s:formatter._substitute(m) abort
@@ -187,7 +188,9 @@ function! neomake#statusline#get_status(bufnr, options) abort
     if !empty(running_jobs)
         let format_running = get(a:options, 'format_running', '… ({{running_job_names}})')
         if format_running isnot 0
-            return s:formatter.format(format_running, {'bufnr': a:bufnr})
+            return s:formatter.format(format_running, {
+                        \ 'bufnr': a:bufnr,
+                        \ 'running_jobs': running_jobs})
         endif
     endif
 
