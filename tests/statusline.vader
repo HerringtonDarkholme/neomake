@@ -67,6 +67,9 @@ Execute (neomake#statusline#get_status):
   if neomake#has_async_support()
     AssertEqual neomake#statusline#get_status(bufnr, {}), '… (sleep-maker)'
     AssertEqual neomake#statusline#get_status(bufnr, {'format_running': '...'}), '...'
+    AssertEqual neomake#statusline#get_status(bufnr, {'format_running': ''}), ''
+    " format_running=0 disables display of running state.
+    AssertEqual neomake#statusline#get_status(bufnr, {'format_running': 0}), '?'
     AssertEqual neomake#statusline#get_status(bufnr, {'format_running': '{{running_job_names}}'}), 'sleep-maker'
   else
     AssertEqual neomake#statusline#get_status(bufnr, {}), '✓'

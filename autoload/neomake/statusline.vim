@@ -186,66 +186,68 @@ function! neomake#statusline#get_status(bufnr, options) abort
     let running_jobs = s:running_jobs(a:bufnr)
     if !empty(running_jobs)
         let format_running = get(a:options, 'format_running', '… ({{running_job_names}})')
-        let r .= s:formatter.format(format_running, {'bufnr': a:bufnr})
-    else
-        let [loclist_counts, qflist_counts] = neomake#statusline#get_counts(a:bufnr)
-        if empty(loclist_counts)
-            if loclist_counts is s:no_loclist_counts
-                let format_unknown = get(a:options, 'format_unknown', '?')
-                let r .= s:formatter.format(format_unknown, {'bufnr': a:bufnr})
-            else
-                let format_ok = get(a:options, 'format_ok', '%#NeomakeStatusGood#✓')
-                let r .= s:formatter.format(format_ok, {'bufnr': a:bufnr})
-            endif
+        if format_running isnot 0
+            return s:formatter.format(format_running, {'bufnr': a:bufnr})
+        endif
+    endif
+
+    let [loclist_counts, qflist_counts] = neomake#statusline#get_counts(a:bufnr)
+    if empty(loclist_counts)
+        if loclist_counts is s:no_loclist_counts
+            let format_unknown = get(a:options, 'format_unknown', '?')
+            let r .= s:formatter.format(format_unknown, {'bufnr': a:bufnr})
         else
-            let format_loclist = get(a:options, 'format_loclist_issues', '%s')
-            if !empty(format_loclist)
-            let loclist = ''
-            for [type, c] in items(loclist_counts)
-                if has_key(a:options, 'format_loclist_type_'.type)
-                    let format = a:options['format_loclist_type_'.type]
-                elseif hlexists('NeomakeStatColorType'.type)
-                    let format = '%#NeomakeStatColorType{{type}}# {{type}}:{{count}} '
-                else
-                    let format = ' {{type}}:{{count}} '
-                endif
-                " let format = get(a:options, 'format_type_'.type, '%#NeomakeStatColorType{{type}}# {{type}}:{{count}} ')
-                let loclist .= s:formatter.format(format, {
+            let format_ok = get(a:options, 'format_ok', '%#NeomakeStatusGood#✓')
+            let r .= s:formatter.format(format_ok, {'bufnr': a:bufnr})
+        endif
+    else
+        let format_loclist = get(a:options, 'format_loclist_issues', '%s')
+        if !empty(format_loclist)
+        let loclist = ''
+        for [type, c] in items(loclist_counts)
+            if has_key(a:options, 'format_loclist_type_'.type)
+                let format = a:options['format_loclist_type_'.type]
+            elseif hlexists('NeomakeStatColorType'.type)
+                let format = '%#NeomakeStatColorType{{type}}# {{type}}:{{count}} '
+            else
+                let format = ' {{type}}:{{count}} '
+            endif
+            " let format = get(a:options, 'format_type_'.type, '%#NeomakeStatColorType{{type}}# {{type}}:{{count}} ')
+            let loclist .= s:formatter.format(format, {
+                        \ 'bufnr': a:bufnr,
+                        \ 'count': c,
+                        \ 'type': type})
+        endfor
+        let r = printf(format_loclist, loclist)
+        endif
+    endif
+
+    " Quickfix counts.
+    if empty(qflist_counts)
+        let format_ok = get(a:options, 'format_quickfix_ok', '')
+        if !empty(format_ok)
+            let r .= s:formatter.format(format_ok, {'bufnr': a:bufnr})
+        endif
+    else
+        let format_quickfix = get(a:options, 'format_quickfix_issues', '%s')
+        if !empty(format_quickfix)
+        let quickfix = ''
+        for [type, c] in items(qflist_counts)
+            if has_key(a:options, 'format_quickfix_type_'.type)
+                let format = a:options['format_quickfix_type_'.type]
+            elseif hlexists('NeomakeStatColorQuickfixType'.type)
+                let format = '%#NeomakeStatColorQuickfixType{{type}}# Q{{type}}:{{count}} '
+            else
+                let format = ' Q{{type}}:{{count}} '
+            endif
+            if !empty(format)
+                let quickfix .= s:formatter.format(format, {
                             \ 'bufnr': a:bufnr,
                             \ 'count': c,
                             \ 'type': type})
-            endfor
-            let r = printf(format_loclist, loclist)
             endif
-        endif
-
-        " Quickfix counts.
-        if empty(qflist_counts)
-            let format_ok = get(a:options, 'format_quickfix_ok', '')
-            if !empty(format_ok)
-                let r .= s:formatter.format(format_ok, {'bufnr': a:bufnr})
-            endif
-        else
-            let format_quickfix = get(a:options, 'format_quickfix_issues', '%s')
-            if !empty(format_quickfix)
-            let quickfix = ''
-            for [type, c] in items(qflist_counts)
-                if has_key(a:options, 'format_quickfix_type_'.type)
-                    let format = a:options['format_quickfix_type_'.type]
-                elseif hlexists('NeomakeStatColorQuickfixType'.type)
-                    let format = '%#NeomakeStatColorQuickfixType{{type}}# Q{{type}}:{{count}} '
-                else
-                    let format = ' Q{{type}}:{{count}} '
-                endif
-                if !empty(format)
-                    let quickfix .= s:formatter.format(format, {
-                                \ 'bufnr': a:bufnr,
-                                \ 'count': c,
-                                \ 'type': type})
-                endif
-            endfor
-            let r = printf(format_quickfix, quickfix)
-            endif
+        endfor
+        let r = printf(format_quickfix, quickfix)
         endif
     endif
     return r
