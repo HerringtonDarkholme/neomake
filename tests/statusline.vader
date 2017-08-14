@@ -78,18 +78,19 @@ Execute (neomake#statusline#get_status):
     AssertEqual neomake#statusline#get_status(bufnr, {'format_running': '{{running_job_names}}'}), 'sleep-maker'
 
     Assert neomake#statusline#get_status(bufnr, {'format_running': '{{running_jobs}}'}) =~# '\m^{''', '{{running_jobs}} is replaced in format_running'
+
+    call neomake#statusline#get_status(bufnr(''), {'format_running': 'Neomake: {{does_not_exist}}'})
+    AssertNeomakeMessage 'Unknown statusline format: {{does_not_exist}}.', 0
+    NeomakeTestsWaitForFinishedJobs
   else
-    AssertEqual neomake#statusline#get_status(bufnr, {}), '✓'
-    AssertEqual neomake#statusline#get_status(bufnr, {'format_running': '...'}), '✓'
+    AssertEqual neomake#statusline#get_status(bufnr, {'format_running': '...'}), '%#NeomakeStatusGood#✓'
     AssertEqual neomake#statusline#get_status(bufnr, {'format_ok': 'dandy!'}), 'dandy!'
     AssertEqual neomake#statusline#get_status(bufnr, {'format_ok': '{{running_job_names}}'}), ''
   endif
 
-  let options = {neomake#has_async_support() ? 'format_running' : 'format_ok': 'Neomake: {{does_not_exist}}'}
-  call neomake#statusline#get_status(bufnr(''), options)
+  call neomake#statusline#get_status(bufnr(''), {'format_ok': 'Neomake: {{does_not_exist}}'})
   AssertNeomakeMessage 'Unknown statusline format: {{does_not_exist}}.', 0
 
-  NeomakeTestsWaitForFinishedJobs
   AssertEqual neomake#statusline#get_status(bufnr, {}), '%#NeomakeStatusGood#✓'
   AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatusGood#✓'
   call neomake#statusline#ResetCountsForBuf(bufnr)
