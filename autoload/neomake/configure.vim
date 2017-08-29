@@ -269,13 +269,32 @@ function! s:parse_events_from_args(config, ...) abort
     if a:0 > 1
         let a:config.automake_delay = delay
     endif
+    if a:0 > 2
+        let options = a:3
+        if type(options) == type([])
+            let a:config.enabled_makers = options
+        elseif has_key(options, 'enabled_makers')
+            let a:config.enabled_makers = options.enabled_makers
+        endif
+    endif
 endfunction
 
-" Setup automake for buffer (current, or a:3).  TODO
+" Setup automake for buffer (current, or options.bufnr).
 " a:1: string or dict describing the events
 " a:2: delay
+" a:3: options ('bufnr', 'makers') / or list of makers  TODO
 function! neomake#configure#automake_for_buffer(...) abort
-    let bufnr = a:0 > 2 ? a:3 + 0 : bufnr('%')
+    let options = a:0 > 2 ? a:3 : {}
+    if type(options) == type([])
+        let options = {'enabled_makers': options}
+    endif
+    if has_key(options, 'bufnr')
+        let bufnr = options.bufnr
+        unlet options.bufnr
+    else
+        let bufnr = bufnr('%')
+    endif
+    call setbufvar(bufnr, 'neomake_automake_tick', [])
     return call('s:configure_buffer', [bufnr] + a:000)
 endfunction
 
@@ -289,6 +308,9 @@ function! s:getbufvar(bufnr, name, default) abort
     return get(b_dict, a:name, a:default)
 endfunction
 
+" a:1: string or dict describing the events
+" a:2: delay
+" a:3: options ('enabled_makers')  TODO: test
 function! s:configure_buffer(bufnr, ...) abort
     let bufnr = +a:bufnr
     let ft = getbufvar(bufnr, '&filetype')
@@ -302,7 +324,13 @@ function! s:configure_buffer(bufnr, ...) abort
     let s:configured_buffers[bufnr] = {'custom': a:0 > 0}
 
     " Set enabled_makers.
-    let [enabled_makers, source] = neomake#config#get_with_source('automake.enabled_makers', neomake#GetEnabledMakers(ft))
+    let options = a:0 > 2 ? a:3 : {}
+    if has_key(config, 'enabled_makers')  " TODO: only "makers"?!
+        let enabled_makers = config.enabled_makers
+        let source = 'options'
+    else
+        let [enabled_makers, source] = neomake#config#get_with_source('automake.enabled_makers', neomake#GetEnabledMakers(ft))
+    endif
     let s:configured_buffers[bufnr].enabled_makers = enabled_makers
     call s:debug_log(printf('configured buffer for ft=%s (%s)',
                 \ ft, empty(enabled_makers) ? 'no enabled makers' : join(map(copy(enabled_makers), "type(v:val) == type('') ? v:val : v:val.name"), ', ').' ('.source.')'), {'bufnr': bufnr})
